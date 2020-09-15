@@ -9,17 +9,15 @@ import maya
 
 
 TEST_RED = '\u001b[31m'
-TEST_GREEN = 'u001b[32m'
-TEST_ENDC = '\U001b[0m'
-COLOR_RED = '\033[91m'
-COLOR_OKGREEN = '\033[92m'
-COLOR_YELLOW = '\033[93m'
-COLOR_BLUE = '\033[94m'
-COLOR_FUSCHIA = '\033[95m'
-COM_FAIL = '\033[91m'
-COM_ENDC = '\033[0m'
-DEC_BOLD = '\033[1m'
-DEC_UNDERLINE = '\033[4m'
+TEST_GREEN = '\u001b[32m'
+TEST_YELLOW = '\u001b[33m'
+TEST_BLUE = '\u001b[34m'
+TEST_FUSCHIA = '\u001b[35m'
+TEST_SKYBLUE = '\u001b[36m'
+TEST_GREY = '\u001b[37m'
+TEST_SLATE = '\u001b[38;5;8m'
+TEST_ORANGE = '\u001b[38;5;12m'
+TEST_ENDC = '\u001b[0m'
 
 complete_url = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 compact_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
@@ -59,15 +57,27 @@ def loopWeatherSeries(weatherSeries):
 def getCurrentWeather(weatherSeries):
     currentWeather = weatherSeries[0]
     weatherDetails = currentWeather['data']['instant']['details']
+    cloudCover = getCloudCover(weatherDetails['cloud_area_fraction'])
     windDirection = getDirection(weatherDetails['wind_from_direction'])
     windSpeed = translateWindSpeed(weatherDetails['wind_speed'])
     temp = convertTemperature(weatherDetails['air_temperature'], True)
     time = convertToSaneTime(currentWeather['time'], 'US/Central')
+    printTemp(temp)
+    printWind(windDirection, windSpeed)
+    printColor(cloudCover, TEST_SLATE)
+    print('\n\n')
+
+def printTemp(temperatureIn):
     print('\n')
-    print(TEST_GREEN + "Current Temperature: " + str(temp) + "F" + TEST_ENDC)
+    printColor("Current Temperature: ", TEST_GREY)
+    tempString = str(temperatureIn) + "F"
+    printColor(tempString, tempSev(temperatureIn))
+
+def printWind(direction, speed):
+    windString = direction + " Currently " + str(speed) + " MPH."
+    print('\n')
+    printColorLn(windString, TEST_ORANGE)
     print()
-    print('\033[94m' + windDirection + " Currently " + str(windSpeed) + " MPH." + '\033[0m')
-    print('\n')
 
 def getCloudCover(clouds):
     if clouds <= 20:
@@ -81,11 +91,17 @@ def getCloudCover(clouds):
 
 def tempSev(tempToCheck):
     if tempToCheck < 45:
-        return ""
+        return TEST_SKYBLUE
+    elif tempToCheck < 75:
+        return TEST_GREEN
+    elif tempToCheck > 74:
+        return TEST_RED
 
 def printColor(text, color):
     print(color, text, TEST_ENDC, sep='', end='')
 
+def printColorLn(text, color):
+    print(color, text, TEST_ENDC)
 
 def translateWindSpeed(windSpeed):
     return round((windSpeed * 2.236936), 1)
