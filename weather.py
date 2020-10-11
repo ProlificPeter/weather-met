@@ -54,8 +54,9 @@ def loopWeatherSeries(weatherSeries):
         print(index)
         print(convertToSaneTime(series['time'], 'US/Central'))
 
-def getCurrentWeather(weatherSeries):
+def getWeatherFromSeries(weatherSeries):
     currentWeather = weatherSeries[0]
+    avgCloud, avgWind, highTemp, lowTemp = getFutureUpdates(weatherSeries)
     weatherDetails = currentWeather['data']['instant']['details']
     cloudCover = getCloudCover(weatherDetails['cloud_area_fraction'])
     windDirection = getDirection(weatherDetails['wind_from_direction'])
@@ -65,7 +66,54 @@ def getCurrentWeather(weatherSeries):
     printTemp(temp)
     printWind(windDirection, windSpeed)
     printColor(cloudCover, TEST_SLATE)
+    printColor(averageClouds(avgCloud), TEST_SLATE)
+    printExtremeTemp(convertTemperature(highTemp, True), True)
+    printExtremeTemp(convertTemperature(lowTemp, True), False)
     print('\n\n')
+    
+
+def getFutureUpdates(weatherSeries):
+    # willRain = False
+    cloudTotal = 0
+    avgCloud = 0
+    windTotal = 0
+    avgWind = 0
+    highTemp = 0
+    lowTemp = 100
+    i = 0
+    for series in weatherSeries:
+        if i < 12:
+            weatherDetails = series['data']['instant']['details']
+            cloudTotal += weatherDetails['cloud_area_fraction']
+            windTotal += weatherDetails['wind_speed']
+            if weatherDetails['air_temperature'] > highTemp:
+                highTemp = weatherDetails['air_temperature']
+            if weatherDetails['air_temperature'] < lowTemp:
+                lowTemp = weatherDetails['air_temperature']
+            i += 1
+        else:
+            avgCloud = cloudTotal / 12
+            avgWind = windTotal / 12
+            return avgCloud, avgWind, highTemp, lowTemp
+
+def averageClouds(clouds):
+    if clouds <= 20:
+        return "\nThe next 12 hours will see clear skies."
+    elif clouds <= 60:
+        return "\nShould be partially cloudy for a bit."
+    elif clouds <= 80:
+        return "\nIt's going to be cloudy."
+    else:
+        return "\nThere will be total cloud cover for the next 12 hours."
+
+def printExtremeTemp(temperatureIn, isHigh):
+    print('\n')
+    if isHigh:
+        printColor("12-hour High: ", TEST_GREY)
+    else:
+        printColor("12-hour Low: ", TEST_GREY)
+    tempString = str(temperatureIn) + "F"
+    printColor(tempString, tempSev(temperatureIn))
 
 def printTemp(temperatureIn):
     print('\n')
@@ -127,5 +175,5 @@ def getDirection(direction):
         return "Two scholars rock fresh, North by Northwest (wind)"
 
 
-getCurrentWeather(weather['properties']['timeseries'])
+getWeatherFromSeries(weather['properties']['timeseries'])
 
