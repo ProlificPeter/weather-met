@@ -173,7 +173,9 @@ def getDirection(direction):
         return "a Northwest wind is blowing."
     elif direction < 355:
         return "Two scholars rock fresh, North by Northwest (wind)"
+    else:
+        return "A North wind blows."
 
-
+# print(jsonPrettyString(weather))
 getWeatherFromSeries(weather['properties']['timeseries'])
 
