@@ -23,10 +23,12 @@ complete_url = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 compact_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
 latitude = round(44.953667, 4)
 longitude = round(-93.15922, 4)
+headers = {'User-Agent': 'github.com/ProlificPeter/weather-met', 'From' : 'peter@rldimensions.com'}
 payload = {'lat': latitude, 'lon': longitude}
 
-metno_api = requests.get(compact_url, params=payload)
+metno_api = requests.get(compact_url, headers=headers, params=payload)
 weather = json.loads(metno_api.text)
+#weather = json.loads(metno_api.json())
 
 # Added for debugging; remove before done.
 def jsonPrettyString(uglyString):
@@ -78,9 +80,10 @@ def getFutureUpdates(weatherSeries):
     avgCloud = 0
     windTotal = 0
     avgWind = 0
-    highTemp = 0
-    lowTemp = 100
+    highTemp = -100
+    lowTemp = 200
     i = 0
+   # print(jsonPrettyString(weatherSeries))
     for series in weatherSeries:
         if i < 12:
             weatherDetails = series['data']['instant']['details']
@@ -88,12 +91,16 @@ def getFutureUpdates(weatherSeries):
             windTotal += weatherDetails['wind_speed']
             if weatherDetails['air_temperature'] > highTemp:
                 highTemp = weatherDetails['air_temperature']
+                # print(weatherDetails['air_temperature'])
             if weatherDetails['air_temperature'] < lowTemp:
                 lowTemp = weatherDetails['air_temperature']
+                # print(weatherDetails['air_temperature'])
             i += 1
         else:
             avgCloud = cloudTotal / 12
             avgWind = windTotal / 12
+            # print(highTemp)
+            # print(lowTemp)
             return avgCloud, avgWind, highTemp, lowTemp
 
 def averageClouds(clouds):
@@ -176,6 +183,6 @@ def getDirection(direction):
     else:
         return "A North wind blows."
 
-# print(jsonPrettyString(weather))
+# print(jsonPrettyString(metno_api.text))
 getWeatherFromSeries(weather['properties']['timeseries'])
 
