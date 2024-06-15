@@ -2,15 +2,18 @@
 #
 # prlg September 11, 2020
 
+
+# Imports
 import sys
 import json
 import requests
 import maya
 import os
+import pgeocode
 
 from dotenv import load_dotenv
 
-
+# Color Codes
 TEST_RED = '\u001b[31m'
 TEST_GREEN = '\u001b[32m'
 TEST_YELLOW = '\u001b[33m'
@@ -25,19 +28,32 @@ TEST_ENDC = '\u001b[0m'
 load_dotenv()
 USER_AGENT = os.getenv('USER_AGENT')
 USER_ADDRESS = os.getenv('USER_ADDRESS')
-USER_LATITUDE = os.getenv('USER_LATITUDE')
-USER_LONGITUDE = os.getenv('USER_LONGITUDE')
+USER_LATITUDE = float(os.getenv('USER_LATITUDE'))
+USER_LONGITUDE = float(os.getenv('USER_LONGITUDE'))
+
+usGeocode = pgeocode.Nominatim('us')
 
 complete_url = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 compact_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
 latitude = round(USER_LATITUDE, 4)
 longitude = round(USER_LONGITUDE, 4)
-headers = {'User-Agent': USER_AGENT, 'From' : USER_ADDRESS}
-payload = {'lat': latitude, 'lon': longitude}
 
-metno_api = requests.get(compact_url, headers=headers, params=payload)
-weather = json.loads(metno_api.text)
+
+
 #weather = json.loads(metno_api.json())
+
+def getWeatherSeries(zipCode = None):
+    if zipCode:
+        results = usGeocode.query_postal_code(zipCode)
+        latitude = results.loc['latitude']
+        longitude = results.loc['longitude']
+        #print(latitude + longitude)
+
+    headers = {'User-Agent': USER_AGENT, 'From' : USER_ADDRESS}
+    payload = {'lat': latitude, 'lon': longitude}
+    metno_api = requests.get(compact_url, headers=headers, params=payload)
+    weather = json.loads(metno_api.text)
+    return weather
 
 # Added for debugging; remove before done.
 def jsonPrettyString(uglyString):
@@ -193,4 +209,6 @@ def getDirection(direction):
         return "A North wind blows."
 
 # print(jsonPrettyString(metno_api.text))
-getWeatherFromSeries(weather['properties']['timeseries'])
+
+weatherSeries = getWeatherSeries("55104")
+getWeatherFromSeries(weatherSeries['properties']['timeseries'])
