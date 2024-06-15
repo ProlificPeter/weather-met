@@ -35,8 +35,8 @@ usGeocode = pgeocode.Nominatim('us')
 
 complete_url = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 compact_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
-latitude = round(USER_LATITUDE, 4)
-longitude = round(USER_LONGITUDE, 4)
+backup_latitude = round(USER_LATITUDE, 4)
+backup_longitude = round(USER_LONGITUDE, 4)
 
 
 
@@ -45,9 +45,13 @@ longitude = round(USER_LONGITUDE, 4)
 def getWeatherSeries(zipCode = None):
     if zipCode:
         results = usGeocode.query_postal_code(zipCode)
+        print("Getting weather for " + results.loc['place_name'] + ", " + results.loc['state_code'])
         latitude = results.loc['latitude']
         longitude = results.loc['longitude']
         #print(latitude + longitude)
+    else:
+        latitude = backup_latitude
+        longitude = backup_longitude
 
     headers = {'User-Agent': USER_AGENT, 'From' : USER_ADDRESS}
     payload = {'lat': latitude, 'lon': longitude}
@@ -210,5 +214,8 @@ def getDirection(direction):
 
 # print(jsonPrettyString(metno_api.text))
 
-weatherSeries = getWeatherSeries("55104")
+if len(sys.argv) > 1:
+    weatherSeries = getWeatherSeries(sys.argv[1])
+else:
+    weatherSeries = getWeatherSeries()
 getWeatherFromSeries(weatherSeries['properties']['timeseries'])
