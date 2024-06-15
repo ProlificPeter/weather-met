@@ -6,6 +6,9 @@ import sys
 import json
 import requests
 import maya
+import os
+
+from dotenv import load_dotenv
 
 
 TEST_RED = '\u001b[31m'
@@ -19,11 +22,17 @@ TEST_SLATE = '\u001b[38;5;8m'
 TEST_ORANGE = '\u001b[38;5;12m'
 TEST_ENDC = '\u001b[0m'
 
+load_dotenv()
+USER_AGENT = os.getenv('USER_AGENT')
+USER_ADDRESS = os.getenv('USER_ADDRESS')
+USER_LATITUDE = os.getenv('USER_LATITUDE')
+USER_LONGITUDE = os.getenv('USER_LONGITUDE')
+
 complete_url = "https://api.met.no/weatherapi/locationforecast/2.0/complete"
 compact_url = "https://api.met.no/weatherapi/locationforecast/2.0/compact"
-latitude = round(44.953667, 4)
-longitude = round(-93.15922, 4)
-headers = {'User-Agent': 'github.com/ProlificPeter/weather-met', 'From' : 'peter@rldimensions.com'}
+latitude = round(USER_LATITUDE, 4)
+longitude = round(USER_LONGITUDE, 4)
+headers = {'User-Agent': USER_AGENT, 'From' : USER_ADDRESS}
 payload = {'lat': latitude, 'lon': longitude}
 
 metno_api = requests.get(compact_url, headers=headers, params=payload)
@@ -72,7 +81,7 @@ def getWeatherFromSeries(weatherSeries):
     printExtremeTemp(convertTemperature(highTemp, True), True)
     printExtremeTemp(convertTemperature(lowTemp, True), False)
     print('\n\n')
-    
+
 
 def getFutureUpdates(weatherSeries):
     # willRain = False
@@ -185,4 +194,3 @@ def getDirection(direction):
 
 # print(jsonPrettyString(metno_api.text))
 getWeatherFromSeries(weather['properties']['timeseries'])
-
